@@ -25,6 +25,7 @@ class Member(object):
         self.id = json_obj.get('id', '')
         self.bio = json_obj.get('bio', '')
         self.url = json_obj.get('url', '')
+        self.avatar_hash = json_obj.get('avatarHash', '')
         self.username = json_obj['username']
         self.full_name = json_obj['fullName']
         self.initials = json_obj['initials']
@@ -45,7 +46,7 @@ class Member(object):
             query_params={'filter': 'visible'})
         return sorted(cards, key=lambda card: card['dateLastActivity'])
 
-    def fetch_notifications(self, filters = []):
+    def fetch_notifications(self, filters=[]):
         """ Fetches all the notifications for this member """
         notifications = self.client.fetch_json(
             '/members/' + self.id + '/notifications',

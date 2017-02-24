@@ -174,8 +174,8 @@ class Board(object):
         :rtype: list of Label
         """
         json_obj = self.client.fetch_json(
-              '/boards/' + self.id + '/labels',
-              query_params={'fields': fields, 'limit': limit})
+            '/boards/' + self.id + '/labels',
+            query_params={'fields': fields, 'limit': limit})
         return Label.from_json_list(self, json_obj)
 
     def get_checklists(self, cards='all'):
@@ -185,11 +185,11 @@ class Board(object):
         """
         checklists = []
         json_obj = self.client.fetch_json(
-              '/boards/' + self.id + '/checklists',
-              query_params={'cards': cards})
+            '/boards/' + self.id + '/checklists',
+            query_params={'cards': cards})
         json_obj = sorted(json_obj, key=lambda checklist: checklist['pos'])
         for cl in json_obj:
-            checklists.append(Checklist(self.client, cl.get('checkItemStates',[]), cl,
+            checklists.append(Checklist(self.client, cl.get('checkItemStates', []), cl,
                                         trello_card=cl.get('idCard')))
         return checklists
 
@@ -338,6 +338,7 @@ class Board(object):
             m.full_name = obj['fullName']
             m.initials = obj.get('initials', '')
             m.member_type = obj.get('memberType', '')
+            m.avatar_hash = obj.get('avatarHash', '')
             members.append(m)
 
         return members
