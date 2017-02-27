@@ -27,6 +27,7 @@ class Organization(object):
         organization = Organization(trello_client, json_obj['id'], name=json_obj['name'])
         organization.description = json_obj.get('desc', '')
         organization.url = json_obj['url']
+        organization.raw = json_obj
         return organization
 
     def __repr__(self):
