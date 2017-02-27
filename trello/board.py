@@ -45,7 +45,7 @@ class Board(object):
         :trello_client: the trello client
         :json_obj: the board json object
 
-        Alternative contrustraction:
+        Alternative construction:
 
         Deserialize the board json object to a board object
 
@@ -60,6 +60,7 @@ class Board(object):
         board.description = json_obj.get('desc', '')
         board.closed = json_obj['closed']
         board.url = json_obj['url']
+        board.raw = json_obj
 
         try:
             board.date_last_activity = dateparser.parse(json_obj['dateLastActivity'])
