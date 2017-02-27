@@ -9,7 +9,7 @@ from trello.trellolist import List
 from trello.organization import Organization
 from trello.member import Member
 from trello.webhook import WebHook
-from trello.exceptions import *
+from trello.exceptions import ResourceUnavailable, Unauthorized, TokenError
 from trello.label import Label
 
 try:
@@ -67,7 +67,7 @@ class TrelloClient(object):
         # TODO: This function.
         raise NotImplementedError()
 
-    def list_boards(self, board_filter="all"):
+    def list_boards(self, params={}):
         """
         Returns all boards for your Trello user
 
@@ -82,7 +82,7 @@ class TrelloClient(object):
             - closed: Boolean representing whether this board is closed or not
             - url: URL to the board
         """
-        json_obj = self.fetch_json('/members/me/boards/?filter=%s' % board_filter)
+        json_obj = self.fetch_json('/members/me/boards', query_params=params)
         return [Board.from_json(self, json_obj=obj) for obj in json_obj]
 
     def list_organizations(self):
@@ -127,7 +127,7 @@ class TrelloClient(object):
         :param permission_level: Permission level, defaults to private
         :rtype: Board
         """
-        post_args={'name': board_name, 'prefs_permissionLevel': permission_level}
+        post_args = {'name': board_name, 'prefs_permissionLevel': permission_level}
         if source_board is not None:
             post_args['idBoardSource'] = source_board.id
         if organization_id is not None:
