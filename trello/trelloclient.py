@@ -67,7 +67,7 @@ class TrelloClient(object):
         # TODO: This function.
         raise NotImplementedError()
 
-    def list_boards(self, params={}):
+    def list_boards(self, board_filter='open'):
         """
         Returns all boards for your Trello user
 
@@ -82,7 +82,7 @@ class TrelloClient(object):
             - closed: Boolean representing whether this board is closed or not
             - url: URL to the board
         """
-        json_obj = self.fetch_json('/members/me/boards', query_params=params)
+        json_obj = self.fetch_json('/members/me/boards/?filter=%s' % board_filter)
         return [Board.from_json(self, json_obj=obj) for obj in json_obj]
 
     def list_organizations(self):
