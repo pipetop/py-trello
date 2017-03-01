@@ -184,15 +184,11 @@ class Board(object):
 
         :rtype: list of Checklist
         """
-        checklists = []
         json_obj = self.client.fetch_json(
             '/boards/' + self.id + '/checklists',
             query_params={'cards': cards})
         json_obj = sorted(json_obj, key=lambda checklist: checklist['pos'])
-        for cl in json_obj:
-            checklists.append(Checklist(self.client, cl.get('checkItemStates', []), cl,
-                                        trello_card=cl.get('idCard')))
-        return checklists
+        return [Checklist.from_json(self.client, cl) for cl in json_obj]
 
     def add_list(self, name, pos=None):
         """Add a list to this board

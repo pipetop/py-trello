@@ -8,17 +8,36 @@ class Checklist(object):
     Class representing a Trello checklist.
     """
 
-    def __init__(self, client, checked, obj, trello_card=None):
+    def __init__(self, client, id):
         self.client = client
-        self.trello_card = trello_card
-        self.id = obj['id']
-        self.name = obj['name']
-        self.items = obj['checkItems']
-        for i in self.items:
-            i['checked'] = False
-            for cis in checked:
-                if cis['idCheckItem'] == i['id'] and cis['state'] == 'complete':
-                    i['checked'] = True
+        self.id = id
+
+    @classmethod
+    def from_json(cls, client, json_obj):
+        """
+        Deserialize the checklist json object to a Card object
+
+        :trello_list: the list object that the card belongs to
+        :json_obj: json object
+        """
+        if 'id' not in json_obj:
+            raise Exception("key 'id' is not in json_obj")
+        cl = cls(client=client, id=json_obj['id'])
+        cl.raw = json_obj
+        cl.name = json_obj.get('name', 'Checklist')
+        cl.board_id = json_obj.get('idBoard')
+        cl.card_id = json_obj.get('idCard')
+        cl.trello_card = cl.card_id
+        cl.items = [
+            {
+                'pos': x.get('pos'),
+                'name': x.get('name'),
+                'state': x.get('state')
+            }
+            for x in json_obj.get('checkItems', [])
+        ]
+        cl.items.sort(key=lambda item: item['pos'])
+        return cl
 
     def add_checklist_item(self, name, checked=False):
         """Add a checklist item to this checklist
@@ -45,15 +64,15 @@ class Checklist(object):
             return
 
         self.client.fetch_json(
-            '/checklists/'+ self.id +
-            '/checkItems/'+ self.items[ix]['id'],
+            '/checklists/' + self.id +
+            '/checkItems/' + self.items[ix]['id'],
             http_method='DELETE')
         del self.items[ix]
 
     def clear(self):
         """Clear checklist by removing all checklist items"""
-        # iterate over names as list is modified while iterating and this breaks
-        # for-loops behaviour
+        # iterate over names as list is modified while iterating
+        # and this breaks for-loops behaviour
         for name in [item['name'] for item in self.items]:
             self.delete_checklist_item(name)
 
@@ -104,11 +123,11 @@ class Checklist(object):
             return
 
         json_obj = self.client.fetch_json(
-                '/cards/' + self.trello_card +
-                '/checklist/' + self.id +
-                '/checkItem/' + self.items[ix]['id'],
-                http_method='PUT',
-                post_args={'name': new_name})
+            '/cards/' + self.trello_card +
+            '/checklist/' + self.id +
+            '/checkItem/' + self.items[ix]['id'],
+            http_method='PUT',
+            post_args={'name': new_name})
 
         self.items[ix] = json_obj
         return json_obj
