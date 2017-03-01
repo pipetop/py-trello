@@ -128,6 +128,7 @@ class Card(object):
         card = cls(parent,
                    json_obj['id'],
                    name=json_obj['name'])
+        card.raw = json_obj
         card.desc = json_obj.get('desc', '')
         card.due = json_obj.get('due', '')
         card.closed = json_obj['closed']
@@ -140,6 +141,7 @@ class Card(object):
         card.idBoard = json_obj['idBoard']
         card.idList = json_obj['idList']
         card.idShort = json_obj['idShort']
+        card.idChecklists = json_obj.get('idChecklists', [])
         card.labels = Label.from_json_list(card.board, json_obj['labels'])
         card.dateLastActivity = dateparser.parse(json_obj['dateLastActivity'])
         return card
@@ -156,6 +158,7 @@ class Card(object):
         json_obj = self.client.fetch_json(
             '/cards/' + self.id,
             query_params={'badges': False})
+        self.raw = json_obj
         self.id = json_obj['id']
         self.name = json_obj['name']
         self.desc = json_obj.get('desc', '')
@@ -167,6 +170,7 @@ class Card(object):
         self.idList = json_obj['idList']
         self.idBoard = json_obj['idBoard']
         self.idLabels = json_obj['idLabels']
+        card.idChecklists = json_obj.get('idChecklists', [])
         self.labels = Label.from_json_list(self.board, json_obj['labels'])
         self.badges = json_obj['badges']
         self.pos = json_obj['pos']
@@ -221,7 +225,7 @@ class Card(object):
         if (force is True) or (self.badges['attachments'] > 0):
             items = self.client.fetch_json(
                 '/cards/' + self.id + '/attachments',
-                query_params={'filter':'false'})
+                query_params={'filter': 'false'})
             return items
         return []
 
