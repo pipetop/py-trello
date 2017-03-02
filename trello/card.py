@@ -114,6 +114,7 @@ class Card(object):
         self.client = parent.client
         self.id = card_id
         self.name = name
+        self.actions = []
 
     @classmethod
     def from_json(cls, parent, json_obj):
@@ -170,7 +171,7 @@ class Card(object):
         self.idList = json_obj['idList']
         self.idBoard = json_obj['idBoard']
         self.idLabels = json_obj['idLabels']
-        card.idChecklists = json_obj.get('idChecklists', [])
+        self.idChecklists = json_obj.get('idChecklists', [])
         self.labels = Label.from_json_list(self.board, json_obj['labels'])
         self.badges = json_obj['badges']
         self.pos = json_obj['pos']
@@ -232,15 +233,34 @@ class Card(object):
     def get_attachments(self):
         return [Attachments.from_json(attachments_json) for attachments_json in self.fetch_attachments(force=True)]
 
-    def fetch_actions(self, action_filter='createCard', since=None, before=None):
+    def fetch_actions(self, action_filter='createCard', since=None, before=None, limit=10):
         """
         Fetch actions for this card can give more argv to action_filter,
         split for ',' json_obj is list
         """
+        query_params = {
+            'filter': action_filter,
+            'limit': limit
+        }
+        if since:
+            query_params['since'] = since
+        if before:
+            query_params['before'] = before
+
         json_obj = self.client.fetch_json(
-            '/cards/' + self.id + '/actions',
-            query_params={'filter': action_filter, "since": since, "before": before})
+            '/cards/' + self.id + '/actions', query_params=query_params)
         self.actions = json_obj
+
+    @property
+    def member_creator(self):
+        if not self.actions:
+            self.fetch_actions(
+                action_filter='createCard,moveCardToBoard,convertToCardFromCheckItem',
+                limit=1
+            )
+        if not self.actions:
+            return None
+        return self.actions[0].get('memberCreator')
 
     def attriExp(self, multiple):
         """
@@ -379,12 +399,14 @@ class Card(object):
         else:
             # Changes in card are ordered to get the dates in order
             last_list = None
+
             def change_cmp(change1, change2):
                 if change1["datetime"] < change2["datetime"]:
                     return -1
                 if change1["datetime"] > change2["datetime"]:
                     return 1
                 return 0
+
             ordered_changes = sorted(changes, cmp=change_cmp)
             # For each arrival to a list, its datetime will be used to compute the time this card is in
             # that destination list
