@@ -30,9 +30,10 @@ class Checklist(object):
         cl.trello_card = cl.card_id
         cl.items = [
             {
+                'id': x.get('id'),
                 'pos': x.get('pos'),
                 'name': x.get('name'),
-                'state': x.get('state')
+                'checked': 'complete' == x.get('state')
             }
             for x in json_obj.get('checkItems', [])
         ]
